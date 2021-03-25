@@ -1,0 +1,1 @@
+# fc-domain-alibaba-component
