@@ -1,0 +1,27 @@
+demo1:
+  # Component: /Users/zqf/Documents/git_proj/serverless-devs-component/fc-domain-alibaba-component/dist
+  Component: fc-domain
+  Provider: alibaba
+  Access: default
+  Properties:
+    region: cn-hangzhou
+    customDomain:
+      domainName: xxx.test.functioncompute.com
+      protocol: HTTP # HTTP | HTTPS
+      routeConfigs:
+        - path: '/*'
+          serviceName: cpp_http_demo
+          functionName: fc_cpp_http
+          # qualifier: xxx
+          methods: 
+            - GET
+        - path: '/a'
+          serviceName: cpp_http_demo
+          functionName: fc_cpp_http
+          # qualifier: xxx
+          methods: 
+            - GET
+      # certConfig:
+      #   certName: xxx
+      #   certificate: xxx
+      #   privateKey: xxx
