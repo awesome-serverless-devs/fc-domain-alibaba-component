@@ -2,7 +2,7 @@ Type: Component
 Name: fc-domain
 Provider:
   - Alibaba
-Version: 0.0.1
+Version: 0.0.2
 Description:
   zh: 阿里云函数计算自定义域名组件，可以快速绑定/解绑自定义域名
   en: Alibaba Cloud function computing domain component, it can quickly bind/unbind custom domain to Alibaba Cloud FC
