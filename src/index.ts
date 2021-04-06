@@ -5,7 +5,7 @@ import { FcCustomDomain, CustomDomainConfig } from './lib/fc/custom-domain';
 import { ICredentials } from './lib/profile';
 
 export default class FcBaseComponent {
-  @core.HLogger('FC-BASE') logger: core.ILogger;
+  @core.HLogger('FC-DOMAIN') logger: core.ILogger;
 
   // 解析入参
   async handlerInputs(inputs) {
