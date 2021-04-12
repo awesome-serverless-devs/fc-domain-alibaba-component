@@ -1,27 +1,30 @@
-demo1:
-  # Component: /Users/zqf/Documents/git_proj/serverless-devs-component/fc-domain-alibaba-component/dist
-  Component: fc-domain
-  Provider: alibaba
-  Access: default
-  Properties:
-    region: cn-hangzhou
-    customDomain:
-      domainName: xxx.test.functioncompute.com
-      protocol: HTTP # HTTP | HTTPS
-      routeConfigs:
-        - path: '/*'
-          serviceName: cpp_http_demo
-          functionName: fc_cpp_http
-          # qualifier: xxx
-          methods: 
-            - GET
-        - path: '/a'
-          serviceName: cpp_http_demo
-          functionName: fc_cpp_http
-          # qualifier: xxx
-          methods: 
-            - GET
-      # certConfig:
-      #   certName: xxx
-      #   certificate: xxx
-      #   privateKey: xxx
+edition: 1.0.0          #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
+name: fcDomainApp         #  项目名称
+access: default  #  秘钥别名
+
+services:
+  fc-domain-test: #  服务名称
+    # component: fc-domain  # 组件名称
+    component: /Users/zqf/Documents/git_proj/serverless-devs-component/fc-domain-alibaba-component/
+    props: #  组件的属性值
+      region: cn-hangzhou
+      customDomain:
+        domainName: xxx.test.functioncompute.com
+        protocol: HTTP # HTTP | HTTPS
+        routeConfigs:
+          - path: '/*'
+            serviceName: cpp_http_demo
+            functionName: fc_cpp_http
+            # qualifier: xxx
+            methods: 
+              - GET
+          - path: '/a'
+            serviceName: cpp_http_demo
+            functionName: fc_cpp_http
+            # qualifier: xxx
+            methods: 
+              - GET
+        # certConfig:
+        #   certName: xxx
+        #   certificate: xxx
+        #   privateKey: xxx

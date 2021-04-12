@@ -1,5 +1,4 @@
 # compiled output
-**/dist
 **/node_modules
 
 # Logs
@@ -38,4 +37,5 @@ lerna-debug.log*
 **/Pulumi.yaml
 
 **/.s
+**/s.copy.yaml
 **/.env
