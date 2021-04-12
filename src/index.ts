@@ -3,35 +3,39 @@ import { promptForConfirmContinue } from './lib/init/prompt';
 import _ from 'lodash';
 import { FcCustomDomain, CustomDomainConfig } from './lib/fc/custom-domain';
 import { ICredentials } from './lib/profile';
+import { IInputs, IProperties } from './interface';
 
 export default class FcBaseComponent {
   @core.HLogger('FC-DOMAIN') logger: core.ILogger;
 
   // 解析入参
-  async handlerInputs(inputs) {
-    const project = inputs?.project || inputs?.Project;
-    const properties = inputs?.properties || inputs?.Properties;
-    const provider: string = project?.Provider || project?.provider;
-    const accessAlias: string = project?.AccessAlias || project?.accessAlias;
-    const credentials: ICredentials = await core.getCredential(provider, accessAlias || '');
-    const args = inputs?.Args || inputs?.args;
-    const projectName: string = project.projectName || project.ProjectName;
+  async handlerInputs(inputs: IInputs) {
+    const project = inputs?.project;
+    const properties: IProperties = inputs?.props;
+    const access: string = project?.access;
+    const credentials: ICredentials = await core.getCredential(access);
+    const args = inputs?.args;
+    const curPath: string = inputs?.path;
+    const projectName: string = project?.projectName;
 
     const customDomainConfig: CustomDomainConfig = properties?.customDomain;
     const { region } = properties;
+    const appName: string = inputs?.appName;
 
     const fcCustomDomain = new FcCustomDomain(customDomainConfig, credentials, region);
     fcCustomDomain.validateConfig();
 
     return {
+      appName,
       projectName,
-      accessAlias,
+      access,
       fcCustomDomain,
       args,
+      curPath,
     };
   }
 
-  async deploy(inputs): Promise<void> {
+  async deploy(inputs: IInputs): Promise<void> {
     const {
       fcCustomDomain,
     } = await this.handlerInputs(inputs);
@@ -41,7 +45,7 @@ export default class FcBaseComponent {
     this.logger.info(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
   }
 
-  async remove(inputs): Promise<void> {
+  async remove(inputs: IInputs): Promise<void> {
     const {
       fcCustomDomain,
       args,
@@ -55,7 +59,7 @@ export default class FcBaseComponent {
       this.logger.error(`custom domain: ${fcCustomDomain.name} dose not exist online, remove failed.`);
       return;
     }
-    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain)}?`)) {
+    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain.data)}?`)) {
       await fcCustomDomain.remove();
       this.logger.info(`${fcCustomDomain.customDomainConfig.domainName} is removed.`);
     } else {
