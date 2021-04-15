@@ -9,7 +9,7 @@ services:
     props: #  组件的属性值
       region: cn-hangzhou
       customDomain:
-        domainName: xxx.test.functioncompute.com
+        domainName: xxx
         protocol: HTTP # HTTP | HTTPS
         routeConfigs:
           - path: '/*'

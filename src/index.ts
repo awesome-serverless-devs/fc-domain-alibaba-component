@@ -8,6 +8,18 @@ import { IInputs, IProperties } from './interface';
 export default class FcBaseComponent {
   @core.HLogger('FC-DOMAIN') logger: core.ILogger;
 
+  async report(componentName: string, command: string, accountID?: string, access?: string): Promise<void> {
+    let uid: string = accountID;
+    if (_.isEmpty(accountID)) {
+      const credentials: ICredentials = await core.getCredential(access);
+      uid = credentials.AccountID;
+    }
+
+    core.reportComponent(command, {
+      command: componentName,
+      uid,
+    });
+  }
   // 解析入参
   async handlerInputs(inputs: IInputs) {
     const project = inputs?.project;
@@ -39,7 +51,7 @@ export default class FcBaseComponent {
     const {
       fcCustomDomain,
     } = await this.handlerInputs(inputs);
-
+    await this.report('fc-domain', 'deploy', fcCustomDomain.credentials.AccountID);
     this.logger.info(`wating for ${fcCustomDomain.customDomainConfig.domainName} to be deployed.`);
     await fcCustomDomain.deploy();
     this.logger.info(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
@@ -50,6 +62,7 @@ export default class FcBaseComponent {
       fcCustomDomain,
       args,
     } = await this.handlerInputs(inputs);
+    await this.report('fc-domain', 'remove', fcCustomDomain.credentials.AccountID);
     this.logger.info(`wating for ${fcCustomDomain.customDomainConfig.domainName} to be removed.`);
     const parsedArgs: {[key: string]: any} = core.commandParse({ args }, { boolean: ['y', 'assumeYes'] });
     const assumeYes: boolean = parsedArgs.data?.y || parsedArgs.data?.assumeYes;
