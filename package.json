@@ -1,9 +1,9 @@
 {
   "name": "fc-domain",
   "main": "./dist/index.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "dependencies": {
-    "@serverless-devs/core": "^0.0.53",
+    "@serverless-devs/core": "^0.0.60",
     "@types/lodash": "^4.14.168",
     "@types/inquirer": "^7.3.1",
     "@alicloud/fc2": "^2.2.2",
