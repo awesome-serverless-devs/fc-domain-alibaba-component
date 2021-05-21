@@ -4,23 +4,22 @@ access: default  #  秘钥别名
 
 services:
   fc-domain-test: #  服务名称
-    # component: fc-domain  # 组件名称
-    component: /Users/zqf/Documents/git_proj/serverless-devs-component/fc-domain-alibaba-component/
+    component: ${path(../)}
     props: #  组件的属性值
-      region: cn-hangzhou
+      region: cn-shanghai
       customDomain:
         domainName: xxx
         protocol: HTTP # HTTP | HTTPS
         routeConfigs:
           - path: '/*'
-            serviceName: cpp_http_demo
-            functionName: fc_cpp_http
+            serviceName: qianfeng_demo
+            functionName: node_demo
             # qualifier: xxx
             methods: 
               - GET
           - path: '/a'
-            serviceName: cpp_http_demo
-            functionName: fc_cpp_http
+            serviceName: qianfeng_demo
+            functionName: node_demo
             # qualifier: xxx
             methods: 
               - GET
