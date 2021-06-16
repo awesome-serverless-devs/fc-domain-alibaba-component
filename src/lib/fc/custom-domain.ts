@@ -2,6 +2,7 @@ import { FcClient } from './fc-client';
 import * as _ from 'lodash';
 import { ICredentials } from '../profile';
 import promiseRetry from '../retry';
+import StdoutFormatter from '../stdout-formatter';
 
 export interface CustomDomainConfig {
   domainName: string;
@@ -58,7 +59,8 @@ export class FcCustomDomain extends FcClient {
         if (ex.code !== 'DomainNameNotFound') {
           this.logger.debug(`error when getCustomDomain, domainName is ${this.name}, error is: \n${ex}`);
 
-          this.logger.log(`\tretry ${times} times`, 'red');
+          const retryMsg = StdoutFormatter.stdoutFormatter.retry('custom domain', 'get', this.name, times);
+          this.logger.log(retryMsg, 'red');
           retry(ex);
         }
         this.logger.debug(`domain: ${this.name} dose not exist online.`);
@@ -98,7 +100,9 @@ export class FcCustomDomain extends FcClient {
         }
       } catch (ex) {
         this.logger.debug(`error when createCustomDomain or updateCustomDomain, domainName is ${this.name}, options is ${JSON.stringify(options)}, error is: \n${ex}`);
-        this.logger.log(`\tretry ${times} times`, 'red');
+
+        const retryMsg = StdoutFormatter.stdoutFormatter.retry('custom domain', !isDomainExistOnline ? 'create' : 'update', this.name, times);
+        this.logger.log(retryMsg, 'red');
         retry(ex);
       }
     });
@@ -111,8 +115,8 @@ export class FcCustomDomain extends FcClient {
       } catch (ex) {
         if (ex.code !== 'DomainNameNotFound') {
           this.logger.debug(`error when deleteCustomDomain, domainName is ${this.name}, error is: \n${ex}`);
-
-          this.logger.log(`\tretry ${times} times`, 'red');
+          const retryMsg = StdoutFormatter.stdoutFormatter.retry('custom domain', 'delete', this.name, times);
+          this.logger.log(retryMsg, 'red');
           retry(ex);
         }
         throw ex;
