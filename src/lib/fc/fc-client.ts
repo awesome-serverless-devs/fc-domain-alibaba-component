@@ -11,10 +11,11 @@ export abstract class FcClient {
 
   static defaultClientTimeout = 6000000;
 
-  constructor(region: string, credentials: ICredentials) {
+  constructor(region: string, credentials: ICredentials, endpoint: string | undefined) {
     this.region = region;
     this.credentials = credentials;
     this.fcClient = new FC(this.credentials.AccountID, {
+      endpoint,
       accessKeyID: this.credentials.AccessKeyID,
       accessKeySecret: this.credentials.AccessKeySecret,
       securityToken: this.credentials.SecurityToken,

@@ -33,8 +33,8 @@ export class FcCustomDomain extends FcClient {
   readonly customDomainConfig: CustomDomainConfig;
   readonly name: string;
 
-  constructor(customDomainConfig: CustomDomainConfig, credentials: ICredentials, region: string) {
-    super(region, credentials);
+  constructor(customDomainConfig: CustomDomainConfig, credentials: ICredentials, region: string, endpoint: string | undefined) {
+    super(region, credentials, endpoint);
     this.customDomainConfig = customDomainConfig;
     this.name = this.customDomainConfig.domainName;
   }
