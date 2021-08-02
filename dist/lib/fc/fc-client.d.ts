@@ -6,6 +6,6 @@ export declare abstract class FcClient {
     readonly region: string;
     readonly fcClient: any;
     static defaultClientTimeout: number;
-    constructor(region: string, credentials: ICredentials);
+    constructor(region: string, credentials: ICredentials, endpoint: string | undefined);
     abstract validateConfig(): void;
 }

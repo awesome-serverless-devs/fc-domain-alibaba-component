@@ -6,4 +6,5 @@ export default class FcBaseComponent {
     private handlerInputs;
     deploy(inputs: IInputs): Promise<void>;
     remove(inputs: IInputs): Promise<void>;
+    private getFcEndpoint;
 }

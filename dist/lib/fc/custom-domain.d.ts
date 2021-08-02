@@ -21,7 +21,7 @@ interface CertConfig {
 export declare class FcCustomDomain extends FcClient {
     readonly customDomainConfig: CustomDomainConfig;
     readonly name: string;
-    constructor(customDomainConfig: CustomDomainConfig, credentials: ICredentials, region: string);
+    constructor(customDomainConfig: CustomDomainConfig, credentials: ICredentials, region: string, endpoint: string | undefined);
     validateConfig(): void;
     get(): Promise<any>;
     existOnline(): Promise<boolean>;
