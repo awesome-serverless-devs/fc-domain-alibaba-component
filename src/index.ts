@@ -65,6 +65,7 @@ export default class FcBaseComponent {
     this.logger.info(createMsg);
     await fcCustomDomain.deploy();
     this.logger.debug(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
+    return (await fcCustomDomain.get())?.data;
   }
 
   async remove(inputs: IInputs): Promise<void> {
