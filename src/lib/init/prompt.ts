@@ -1,4 +1,6 @@
-import inquirer from 'inquirer';
+import * as core from '@serverless-devs/core';
+const { inquirer } = core;
+
 
 function isInteractiveEnvironment(): boolean {
   return process.stdin.isTTY;

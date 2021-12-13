@@ -62,7 +62,7 @@ export default class FcBaseComponent {
     } = await this.handlerInputs(inputs);
     await this.report('fc-domain', 'deploy', fcCustomDomain.credentials.AccountID);
     const createMsg = StdoutFormatter.stdoutFormatter.create('custom domain', fcCustomDomain.customDomainConfig.domainName);
-    this.logger.info(createMsg);
+    this.logger.debug(createMsg);
     await fcCustomDomain.deploy();
     this.logger.debug(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
     return (await fcCustomDomain.get())?.data;
