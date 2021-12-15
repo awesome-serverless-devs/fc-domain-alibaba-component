@@ -1,33 +1,32 @@
 {
   "name": "fc-domain",
   "main": "./dist/index.js",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "autoInstall": false,
   "dependencies": {
-    "@alicloud/fc2": "^2.2.2",
-    "@serverless-devs/core": "latest",
+    "@serverless-devs/core": "^0.0.x",
     "lodash": "^4.17.21",
+    "inquirer": "^8.1.0",
+    "@alicloud/fc2": "^2.2.2",
     "promise-retry": "^2.0.1"
   },
   "devDependencies": {
     "@types/eslint": "^7.2.6",
     "@types/jest": "^26.0.10",
     "@types/node": "14",
-    "@vercel/ncc": "^0.24.0",
-    "esbuild": "^0.14.3",
     "f2elint": "^0.4.4",
     "jest": "^26.4.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.2.0",
     "ts-loader": "^8.0.14",
     "ts-node": "^9.1.1",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "@vercel/ncc": "^0.24.0"
   },
   "scripts": {
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rm -rf node_modules && rm -rf package-lock.json && npm i && rimraf dist",
-    "build": "npm run fix && npm run lint && npm run esbuild",
-    "esbuild": "esbuild src/index.ts --bundle --log-level=error --minify --platform=node --format=cjs --target=node10.4 --external:@serverless-devs/core --outfile=dist/index.js",
+    "build": "npm run fix && npm run lint && ncc build src/index.ts -m -e @serverless-devs/core -o dist",
     "postbuild": "cp package.json dist/",
     "test": "jest",
     "test:cov": "jest --coverage",
