@@ -14,7 +14,7 @@ export default class FcBaseComponent {
     const project = inputs?.project;
     const properties: IProperties = inputs?.props;
     const access: string = project?.access;
-    const credentials: ICredentials =  _.isEmpty(inputs.credentials) ? await core.getCredential(access) : inputs.credentials;
+    const credentials: ICredentials = _.isEmpty(inputs.credentials) ? await core.getCredential(access) : inputs.credentials;
     const args = inputs?.args;
     const curPath: string = inputs?.path;
     const projectName: string = project?.projectName;

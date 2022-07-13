@@ -115,7 +115,7 @@ export class FcCustomDomain extends FcClient {
         routes: this.customDomainConfig.routeConfigs,
       },
     });
-    
+
 
     return resolvedCustomDomainConf;
   }
