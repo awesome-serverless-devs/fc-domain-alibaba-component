@@ -1,5 +1,6 @@
-import { FcClient } from './fc-client';
+import * as core from '@serverless-devs/core';
 import * as _ from 'lodash';
+import { FcClient } from './fc-client';
 import { ICredentials } from '../profile';
 import promiseRetry from '../retry';
 import StdoutFormatter from '../stdout-formatter';
@@ -9,6 +10,7 @@ export interface CustomDomainConfig {
   protocol: 'HTTP' | 'HTTP,HTTPS';
   routeConfigs: RouteConfig[];
   certConfig?: CertConfig;
+  certId?: string;
 }
 
 function instanceOfCustomDomain(data: any): data is CustomDomainConfig {
@@ -75,7 +77,7 @@ export class FcCustomDomain extends FcClient {
     return true;
   }
 
-  resolveCustomDomainConfig(): {[key: string]: any} {
+  async resolveCustomDomainConfig(): Promise<{[key: string]: any}> {
     const options: {[key: string]: any} = { ...this.customDomainConfig };
     delete options.domainName;
     delete options.routeConfigs;
@@ -84,12 +86,43 @@ export class FcCustomDomain extends FcClient {
         routes: this.customDomainConfig.routeConfigs,
       },
     });
-    return options;
+
+    const resolvedCustomDomainConf = _.cloneDeep(this.customDomainConfig);
+    if (resolvedCustomDomainConf.protocol === 'HTTP,HTTPS') {
+      const { HttpsCertConfig } = await core.loadComponent('devsapp/fc-core');
+      if (!_.isEmpty(this.customDomainConfig.certConfig)) {
+        const { privateKey, certificate } = this.customDomainConfig.certConfig;
+        if (privateKey) {
+          resolvedCustomDomainConf.certConfig.privateKey = await HttpsCertConfig.getCertKeyContent(privateKey, {
+            credentials: this.credentials,
+          });
+        }
+        if (certificate) {
+          resolvedCustomDomainConf.certConfig.certificate = await HttpsCertConfig.getCertKeyContent(certificate, {
+            credentials: this.credentials,
+          });
+        }
+      } else if (this.customDomainConfig.certId) {
+        resolvedCustomDomainConf.certConfig = await HttpsCertConfig.getUserCertificateDetail(this.customDomainConfig.certId, {
+          credentials: this.credentials,
+        });
+        delete resolvedCustomDomainConf.certId;
+      }
+    }
+    delete resolvedCustomDomainConf.routeConfigs;
+    Object.assign(resolvedCustomDomainConf, {
+      routeConfig: {
+        routes: this.customDomainConfig.routeConfigs,
+      },
+    });
+    
+
+    return resolvedCustomDomainConf;
   }
 
   async deploy(): Promise<void> {
     const isDomainExistOnline: boolean = await this.existOnline();
-    const options = this.resolveCustomDomainConfig();
+    const options = await this.resolveCustomDomainConfig();
     this.logger.debug(`custom domain deploy options: ${JSON.stringify(options)}`);
     await promiseRetry(async (retry: any, times: number): Promise<void> => {
       try {
