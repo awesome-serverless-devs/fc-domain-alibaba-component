@@ -1,9 +1,9 @@
-import { HLogger, ILogger } from '@serverless-devs/core';
-import { ICredentials } from '../profile';
 import FC from '@alicloud/fc2';
+import { ICredentials } from '../interface';
+import logger from '../utils/logger';
 
 export abstract class FcClient {
-  @HLogger('FC-DOMAIN') logger: ILogger;
+  logger = logger;
 
   readonly credentials: ICredentials;
   readonly region: string;

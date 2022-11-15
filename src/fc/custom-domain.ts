@@ -1,34 +1,12 @@
 import * as core from '@serverless-devs/core';
 import * as _ from 'lodash';
 import { FcClient } from './fc-client';
-import { ICredentials } from '../profile';
-import promiseRetry from '../retry';
-import StdoutFormatter from '../stdout-formatter';
-
-export interface CustomDomainConfig {
-  domainName: string;
-  protocol: 'HTTP' | 'HTTP,HTTPS';
-  routeConfigs: RouteConfig[];
-  certConfig?: CertConfig;
-  certId?: string;
-}
+import { ICredentials, CustomDomainConfig } from '../interface';
+import promiseRetry from '../utils/retry';
+import StdoutFormatter from '../utils/stdout-formatter';
 
 function instanceOfCustomDomain(data: any): data is CustomDomainConfig {
   return 'domainName' in data && 'protocol' in data && 'routeConfigs' in data;
-}
-
-interface RouteConfig {
-  path: string;
-  serviceName: string;
-  functionName: string;
-  qualifier?: string;
-  methods?: string[];
-}
-
-interface CertConfig {
-  certName: string;
-  certificate: string;
-  privateKey: string;
 }
 
 export class FcCustomDomain extends FcClient {

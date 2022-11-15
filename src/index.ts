@@ -1,14 +1,13 @@
 import * as core from '@serverless-devs/core';
-import { promptForConfirmContinue } from './lib/init/prompt';
+import { promptForConfirmContinue } from './utils/prompt';
 import _ from 'lodash';
-import { FcCustomDomain, CustomDomainConfig } from './lib/fc/custom-domain';
-import { ICredentials } from './lib/profile';
-import StdoutFormatter from './lib/stdout-formatter';
-import { IInputs, IProperties } from './interface';
+import { FcCustomDomain, CustomDomainConfig } from './fc/custom-domain';
+import StdoutFormatter from './utils/stdout-formatter';
+import { ICredentials, IInputs, IProperties } from './interface';
+import logger from './utils/logger';
 
 export default class FcBaseComponent {
-  @core.HLogger('FC-DOMAIN') logger: core.ILogger;
-
+  logger = logger;
   // 解析入参
   private async handlerInputs(inputs: IInputs) {
     const project = inputs?.project;
