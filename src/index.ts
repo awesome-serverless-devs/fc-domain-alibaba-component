@@ -1,9 +1,9 @@
 import * as core from '@serverless-devs/core';
 import { promptForConfirmContinue } from './utils/prompt';
 import _ from 'lodash';
-import { FcCustomDomain, CustomDomainConfig } from './fc/custom-domain';
+import { FcCustomDomain } from './fc/custom-domain';
 import StdoutFormatter from './utils/stdout-formatter';
-import { ICredentials, IInputs, IProperties } from './interface';
+import { ICredentials, IInputs, IProperties, CustomDomainConfig } from './interface';
 import logger from './utils/logger';
 
 export default class FcBaseComponent {
@@ -19,6 +19,13 @@ export default class FcBaseComponent {
     const projectName: string = project?.projectName;
 
     const customDomainConfig: CustomDomainConfig = properties?.customDomain;
+    // Fix: https://github.com/devsapp/fc/issues/876
+    if (_.isArray(customDomainConfig?.routeConfigs)) {
+      customDomainConfig.routeConfigs = _.map(customDomainConfig.routeConfigs, (i) => ({
+        ...(i || {}),
+        qualifier: _.isNumber(i?.qualifier) ? i.qualifier.toString() : i?.qualifier,
+      }));
+    }
     const { region } = properties;
     const appName: string = inputs?.appName;
 
