@@ -1,14 +1,14 @@
 import * as core from '@serverless-devs/core';
-import { promptForConfirmContinue } from './lib/init/prompt';
-import _ from 'lodash';
-import { FcCustomDomain, CustomDomainConfig } from './lib/fc/custom-domain';
-import { ICredentials } from './lib/profile';
-import StdoutFormatter from './lib/stdout-formatter';
-import { IInputs, IProperties } from './interface';
+import { promptForConfirmContinue } from './utils/prompt';
+import { FcCustomDomain } from './fc/custom-domain';
+import StdoutFormatter from './utils/stdout-formatter';
+import { ICredentials, IInputs, IProperties, CustomDomainConfig } from './interface';
+import logger from './utils/logger';
+
+const _ = core.lodash;
 
 export default class FcBaseComponent {
-  @core.HLogger('FC-DOMAIN') logger: core.ILogger;
-
+  logger = logger;
   // 解析入参
   private async handlerInputs(inputs: IInputs) {
     const project = inputs?.project;
@@ -19,7 +19,16 @@ export default class FcBaseComponent {
     const curPath: string = inputs?.path;
     const projectName: string = project?.projectName;
 
+    const { data: argsData } = core.commandParse({ args, argsObj: inputs?.argsObj });
+
     const customDomainConfig: CustomDomainConfig = properties?.customDomain;
+    // Fix: https://github.com/devsapp/fc/issues/876
+    if (_.isArray(customDomainConfig?.routeConfigs)) {
+      customDomainConfig.routeConfigs = _.map(customDomainConfig.routeConfigs, (i) => ({
+        ...(i || {}),
+        qualifier: _.isNumber(i?.qualifier) ? i.qualifier.toString() : i?.qualifier,
+      }));
+    }
     const { region } = properties;
     const appName: string = inputs?.appName;
 
@@ -36,19 +45,18 @@ export default class FcBaseComponent {
       fcCustomDomain,
       args,
       curPath,
+      argsData,
     };
   }
 
   async deploy(inputs: IInputs): Promise<void> {
-    const {
-      fcCustomDomain,
-    } = await this.handlerInputs(inputs);
+    const { fcCustomDomain, argsData } = await this.handlerInputs(inputs);
 
     const createMsg = StdoutFormatter.stdoutFormatter.create('custom domain', fcCustomDomain.customDomainConfig.domainName);
     this.logger.debug(createMsg);
-    await fcCustomDomain.deploy();
+    await fcCustomDomain.deploy(argsData.patch);
     this.logger.debug(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
-    return (await fcCustomDomain.get())?.data;
+    return await fcCustomDomain.get();
   }
 
   async remove(inputs: IInputs): Promise<void> {
@@ -66,7 +74,7 @@ export default class FcBaseComponent {
       this.logger.error(`custom domain: ${fcCustomDomain.name} dose not exist online, remove failed.`);
       return;
     }
-    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain.data)}?`)) {
+    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain)}?`)) {
       await fcCustomDomain.remove();
       this.logger.debug(`${fcCustomDomain.customDomainConfig.domainName} is removed.`);
     } else {
@@ -75,10 +83,7 @@ export default class FcBaseComponent {
   }
 
   private async getFcEndpoint(): Promise<string | undefined> {
-    const fcDefault = await core.loadComponent('devsapp/fc-default');
-    const fcEndpoint: string = await fcDefault.get({ args: 'fc-endpoint' });
-    if (!fcEndpoint) { return undefined; }
-    const enableFcEndpoint: any = await fcDefault.get({ args: 'enable-fc-endpoint' });
-    return (enableFcEndpoint === true || enableFcEndpoint === 'true') ? fcEndpoint : undefined;
+    const fcCore = await core.loadComponent('devsapp/fc-core');
+    return await fcCore.getEndpointFromFcDefault();
   }
 }

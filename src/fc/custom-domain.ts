@@ -1,34 +1,13 @@
 import * as core from '@serverless-devs/core';
-import * as _ from 'lodash';
 import { FcClient } from './fc-client';
-import { ICredentials } from '../profile';
-import promiseRetry from '../retry';
-import StdoutFormatter from '../stdout-formatter';
+import { ICredentials, CustomDomainConfig } from '../interface';
+import promiseRetry from '../utils/retry';
+import StdoutFormatter from '../utils/stdout-formatter';
 
-export interface CustomDomainConfig {
-  domainName: string;
-  protocol: 'HTTP' | 'HTTP,HTTPS';
-  routeConfigs: RouteConfig[];
-  certConfig?: CertConfig;
-  certId?: string;
-}
+const _ = core.lodash;
 
 function instanceOfCustomDomain(data: any): data is CustomDomainConfig {
   return 'domainName' in data && 'protocol' in data && 'routeConfigs' in data;
-}
-
-interface RouteConfig {
-  path: string;
-  serviceName: string;
-  functionName: string;
-  qualifier?: string;
-  methods?: string[];
-}
-
-interface CertConfig {
-  certName: string;
-  certificate: string;
-  privateKey: string;
 }
 
 export class FcCustomDomain extends FcClient {
@@ -56,7 +35,7 @@ export class FcCustomDomain extends FcClient {
       try {
         const onlineCustomDomain = await this.fcClient.getCustomDomain(this.name);
         this.logger.debug(`online custom domain: ${JSON.stringify(onlineCustomDomain)}`);
-        return onlineCustomDomain;
+        return onlineCustomDomain?.data;
       } catch (ex) {
         if (ex.code !== 'DomainNameNotFound') {
           this.logger.debug(`error when getCustomDomain, domainName is ${this.name}, error is: \n${ex}`);
@@ -71,21 +50,8 @@ export class FcCustomDomain extends FcClient {
     });
   }
 
-  async existOnline(): Promise<boolean> {
-    const onlineCustomDomain = await this.get();
-    if (_.isEmpty(onlineCustomDomain)) { return false; }
-    return true;
-  }
-
-  async resolveCustomDomainConfig(): Promise<{[key: string]: any}> {
-    const options: {[key: string]: any} = { ...this.customDomainConfig };
-    delete options.domainName;
-    delete options.routeConfigs;
-    Object.assign(options, {
-      routeConfig: {
-        routes: this.customDomainConfig.routeConfigs,
-      },
-    });
+  async resolveCustomDomainConfig(onlineCustomDomain, usePatch: boolean): Promise<{[key: string]: any}> {
+    const localRouteConfigs = _.get(this.customDomainConfig, 'routeConfigs', []);
 
     const resolvedCustomDomainConf = _.cloneDeep(this.customDomainConfig);
     if (resolvedCustomDomainConf.protocol === 'HTTP,HTTPS') {
@@ -110,19 +76,29 @@ export class FcCustomDomain extends FcClient {
       }
     }
     delete resolvedCustomDomainConf.routeConfigs;
-    Object.assign(resolvedCustomDomainConf, {
-      routeConfig: {
-        routes: this.customDomainConfig.routeConfigs,
-      },
-    });
-
+    if (usePatch) {
+      const remoteRouteConfigs = _.get(onlineCustomDomain, 'routeConfig.routes', []);
+      const routes = _.cloneDeep(localRouteConfigs);
+      _.forEach(remoteRouteConfigs, (remoteRouteConfig) => {
+        for (const localRouteConfig of localRouteConfigs) {
+          if (localRouteConfig.path === remoteRouteConfig.path) {
+            return;
+          }
+        }
+        routes.push(remoteRouteConfig);
+      });
+      _.set(resolvedCustomDomainConf, 'routeConfig.routes', routes);
+    } else {
+      _.set(resolvedCustomDomainConf, 'routeConfig.routes', localRouteConfigs);
+    }
 
     return resolvedCustomDomainConf;
   }
 
-  async deploy(): Promise<void> {
-    const isDomainExistOnline: boolean = await this.existOnline();
-    const options = await this.resolveCustomDomainConfig();
+  async deploy(usePatch: boolean): Promise<void> {
+    const onlineCustomDomain = await this.get();
+    const isDomainExistOnline = !_.isEmpty(onlineCustomDomain);
+    const options = await this.resolveCustomDomainConfig(onlineCustomDomain, usePatch);
     this.logger.debug(`custom domain deploy options: ${JSON.stringify(options)}`);
     await promiseRetry(async (retry: any, times: number): Promise<void> => {
       try {
