@@ -1,10 +1,11 @@
 import * as core from '@serverless-devs/core';
 import { promptForConfirmContinue } from './utils/prompt';
-import _ from 'lodash';
 import { FcCustomDomain } from './fc/custom-domain';
 import StdoutFormatter from './utils/stdout-formatter';
 import { ICredentials, IInputs, IProperties, CustomDomainConfig } from './interface';
 import logger from './utils/logger';
+
+const _ = core.lodash;
 
 export default class FcBaseComponent {
   logger = logger;
@@ -17,6 +18,8 @@ export default class FcBaseComponent {
     const args = inputs?.args;
     const curPath: string = inputs?.path;
     const projectName: string = project?.projectName;
+
+    const { data: argsData } = core.commandParse({ args, argsObj: inputs?.argsObj });
 
     const customDomainConfig: CustomDomainConfig = properties?.customDomain;
     // Fix: https://github.com/devsapp/fc/issues/876
@@ -42,19 +45,18 @@ export default class FcBaseComponent {
       fcCustomDomain,
       args,
       curPath,
+      argsData,
     };
   }
 
   async deploy(inputs: IInputs): Promise<void> {
-    const {
-      fcCustomDomain,
-    } = await this.handlerInputs(inputs);
+    const { fcCustomDomain, argsData } = await this.handlerInputs(inputs);
 
     const createMsg = StdoutFormatter.stdoutFormatter.create('custom domain', fcCustomDomain.customDomainConfig.domainName);
     this.logger.debug(createMsg);
-    await fcCustomDomain.deploy();
+    await fcCustomDomain.deploy(argsData.patch);
     this.logger.debug(`custom domain: ${fcCustomDomain.customDomainConfig.domainName} is deployed.`);
-    return (await fcCustomDomain.get())?.data;
+    return await fcCustomDomain.get();
   }
 
   async remove(inputs: IInputs): Promise<void> {
@@ -72,7 +74,7 @@ export default class FcBaseComponent {
       this.logger.error(`custom domain: ${fcCustomDomain.name} dose not exist online, remove failed.`);
       return;
     }
-    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain.data)}?`)) {
+    if (assumeYes || await promptForConfirmContinue(`Are you sure to remove custom domain: ${JSON.stringify(onlineCustomDomain)}?`)) {
       await fcCustomDomain.remove();
       this.logger.debug(`${fcCustomDomain.customDomainConfig.domainName} is removed.`);
     } else {

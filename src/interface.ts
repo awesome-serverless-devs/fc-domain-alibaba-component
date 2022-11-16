@@ -8,6 +8,7 @@ export interface IInputs {
   credentials?: any;
   appName: string;
   args: string;
+  argsObj?: any;
   path: any;
 }
 
