@@ -39,4 +39,3 @@ lerna-debug.log*
 **/.s
 **/s.copy.yaml
 **/.env
-package-lock.json
