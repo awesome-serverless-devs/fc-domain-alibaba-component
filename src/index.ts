@@ -18,21 +18,42 @@ export default class FcBaseComponent {
     const args = inputs?.args;
     const curPath: string = inputs?.path;
     const projectName: string = project?.projectName;
-
-    const { data: argsData } = core.commandParse({ args, argsObj: inputs?.argsObj });
-
+    const { region } = properties;
+    const appName: string = inputs?.appName;
     const customDomainConfig: CustomDomainConfig = properties?.customDomain;
-    // Fix: https://github.com/devsapp/fc/issues/876
+    if (_.isEmpty(customDomainConfig)) {
+      throw new Error('Not fount customDomain config');
+    }
+    const { data: argsData } = core.commandParse({ args, argsObj: inputs?.argsObj });
+    const fcCore = await core.loadComponent('devsapp/fc-core');
+
+    // gen auto name
+    if (fcCore.isAuto(customDomainConfig?.domainName)) {
+      logger.info(`Configuring ${customDomainConfig.domainName} is auto, generating...`);
+      const { serviceName, functionName } = _.get(customDomainConfig, 'routeConfigs[0]', {});
+      const domainProps = {
+        type: 'fc',
+        user: credentials.AccountID,
+        region,
+        service: serviceName,
+        function: functionName,
+      };
+      const i = _.cloneDeep(inputs);
+      _.set(i, 'props', domainProps);
+      const domainComponentIns = await core.load('devsapp/domain');
+      customDomainConfig.domainName = await domainComponentIns.get(i);
+      logger.info(`Generated domain successfully: ${customDomainConfig.domainName}`);
+    }
+
     if (_.isArray(customDomainConfig?.routeConfigs)) {
       customDomainConfig.routeConfigs = _.map(customDomainConfig.routeConfigs, (i) => ({
         ...(i || {}),
+        // Fix: https://github.com/devsapp/fc/issues/876
         qualifier: _.isNumber(i?.qualifier) ? i.qualifier.toString() : i?.qualifier,
       }));
     }
-    const { region } = properties;
-    const appName: string = inputs?.appName;
 
-    const endpoint = await this.getFcEndpoint();
+    const endpoint = await fcCore.getEndpointFromFcDefault();
     const fcCustomDomain = new FcCustomDomain(customDomainConfig, credentials, region, endpoint);
     fcCustomDomain.validateConfig();
 
@@ -66,7 +87,7 @@ export default class FcBaseComponent {
     } = await this.handlerInputs(inputs);
     const removeMsg = StdoutFormatter.stdoutFormatter.remove('custom domain', fcCustomDomain.customDomainConfig.domainName);
     this.logger.info(removeMsg);
-    const parsedArgs: {[key: string]: any} = core.commandParse({ args }, { boolean: ['y', 'assumeYes'] });
+    const parsedArgs: { [key: string]: any } = core.commandParse({ args }, { boolean: ['y', 'assumeYes'] });
     const assumeYes: boolean = parsedArgs.data?.y || parsedArgs.data?.assumeYes;
 
     const onlineCustomDomain = await fcCustomDomain.get();
@@ -80,10 +101,5 @@ export default class FcBaseComponent {
     } else {
       this.logger.info(`cancel removing custom domain: ${fcCustomDomain.customDomainConfig.domainName}`);
     }
-  }
-
-  private async getFcEndpoint(): Promise<string | undefined> {
-    const fcCore = await core.loadComponent('devsapp/fc-core');
-    return await fcCore.getEndpointFromFcDefault();
   }
 }
