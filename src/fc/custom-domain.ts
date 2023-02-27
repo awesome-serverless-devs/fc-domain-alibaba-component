@@ -50,7 +50,7 @@ export class FcCustomDomain extends FcClient {
     });
   }
 
-  async resolveCustomDomainConfig(onlineCustomDomain, usePatch: boolean): Promise<{[key: string]: any}> {
+  async resolveCustomDomainConfig(onlineCustomDomain, usePatch: boolean): Promise<{ [key: string]: any }> {
     const localRouteConfigs = _.get(this.customDomainConfig, 'routeConfigs', []);
 
     const resolvedCustomDomainConf = _.cloneDeep(this.customDomainConfig);
@@ -75,7 +75,7 @@ export class FcCustomDomain extends FcClient {
         delete resolvedCustomDomainConf.certId;
       }
     }
-    delete resolvedCustomDomainConf.routeConfigs;
+    _.unset(resolvedCustomDomainConf, 'routeConfigs');
     if (usePatch) {
       const remoteRouteConfigs = _.get(onlineCustomDomain, 'routeConfig.routes', []);
       const routes = _.cloneDeep(localRouteConfigs);
@@ -90,6 +90,10 @@ export class FcCustomDomain extends FcClient {
       _.set(resolvedCustomDomainConf, 'routeConfig.routes', routes);
     } else {
       _.set(resolvedCustomDomainConf, 'routeConfig.routes', localRouteConfigs);
+
+      if (_.isEmpty(resolvedCustomDomainConf.wafConfig)) {
+        _.set(resolvedCustomDomainConf, 'wafConfig', { enableWAF: false });
+      }
     }
 
     return resolvedCustomDomainConf;
