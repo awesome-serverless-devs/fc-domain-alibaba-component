@@ -1,6 +1,6 @@
-edition: 1.0.0          #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
-name: fcDomainApp         #  项目名称
-access: default  #  秘钥别名
+edition: 1.0.0 #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
+name: fcDomainApp #  项目名称
+access: quanxi #  秘钥别名
 
 services:
   fc-domain-test: #  服务名称
@@ -8,21 +8,25 @@ services:
     props: #  组件的属性值
       region: cn-shanghai
       customDomain:
-        domainName: xxx
+        domainName: frontend.serverless-cd-wss.1740298130743624.ap-southeast-1.fc.devsapp.net
         protocol: HTTP # HTTP | HTTPS
         routeConfigs:
-          - path: '/*'
-            serviceName: qianfeng_demo
-            functionName: node_demo
-            # qualifier: xxx
-            methods: 
-              - GET
-          - path: '/a'
-            serviceName: qianfeng_demo
-            functionName: node_demo
-            # qualifier: xxx
-            methods: 
-              - GET
+          - path: "/*"
+            serviceName: start-fc-http-nodejs12
+            functionName: hello-world-service
+            rewriteConfig:
+              equalRules:
+                - match: /equalRules
+                  replacement: /xxxx
+              regexRules:
+                - match: ^/old/[a-z]+/
+                  replacement: /xxxx
+              wildcardRules:
+                - match: /api/*
+                  replacement: /$1
+        wafConfig:
+          enableWAF: true
+
         # certConfig:
         #   certName: xxx
         #   certificate: xxx
