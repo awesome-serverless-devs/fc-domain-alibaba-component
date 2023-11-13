@@ -4,11 +4,12 @@ access: quanxi #  秘钥别名
 
 services:
   fc-domain-test: #  服务名称
-    component: ${path(../)}
+    #component: ${path(../)}
+    component: fc-domain
     props: #  组件的属性值
-      region: cn-shanghai
+      region: cn-hangzhou
       customDomain:
-        domainName: frontend.serverless-cd-wss.1740298130743624.ap-southeast-1.fc.devsapp.net
+        domainName: start-fc-http-nodejs12.hello-world-service.123456789.cn-hangzhou.fc.devsapp.net
         protocol: HTTP # HTTP | HTTPS
         routeConfigs:
           - path: "/*"
@@ -24,8 +25,8 @@ services:
               wildcardRules:
                 - match: /api/*
                   replacement: /$1
-        wafConfig:
-          enableWAF: true
+        # wafConfig:
+        #   enableWAF: true
 
         # certConfig:
         #   certName: xxx
