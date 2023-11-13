@@ -21,6 +21,7 @@ export abstract class FcClient {
       securityToken: this.credentials.SecurityToken,
       region: this.region,
       timeout: FcClient.defaultClientTimeout,
+      headers: { 'user-agent': 'serverless-devs2.0' },
     });
   }
 
